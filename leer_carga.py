@@ -13,41 +13,41 @@ blockfalse = [False, False, False, False, False, False, False, False]
 # un archivo llamado "carga.dat"
 
 def leer_carga_y_cursos():
-	carga = {}
-	fijos = {}
-	cursos = []
-	datos = file("carga.dat", "r")
+    carga = {}
+    fijos = {}
+    cursos = []
+    datos = file("carga.dat", "r")
 
-	for line in datos:
+    for line in datos:
 
-		temp = []
+        temp = []
 
-		for a in line.split():
-			temp.append(a)
-	
-		for i in range(1,len(temp)/2):
-			#if temp[0] not in carga: 
-			#	carga[temp[0]]= {}
-	   		if temp[1] not in carga:
-				carga[temp[1]]= {}
-				if temp[0]=="Fijo":
-					fijos[temp[1]]= {}
-	   		if temp[2*i] not in carga[temp[1]]:
-				carga[temp[1]][temp[2*i]] = 0
-				if temp[0]=="Fijo":
-					fijos[temp[1]][temp[2*i]]= 0
+        for a in line.split():
+            temp.append(a)
+    
+        for i in range(1,len(temp)/2):
+            #if temp[0] not in carga: 
+            #   carga[temp[0]]= {}
+            if temp[1] not in carga:
+                carga[temp[1]]= {}
+                if temp[0]=="Fijo":
+                    fijos[temp[1]]= {}
+            if temp[2*i] not in carga[temp[1]]:
+                carga[temp[1]][temp[2*i]] = 0
+                if temp[0]=="Fijo":
+                    fijos[temp[1]][temp[2*i]]= 0
 
-	   		carga[temp[1]][temp[2*i]] = int(temp[2*i+1])
+            carga[temp[1]][temp[2*i]] = int(temp[2*i+1])
 
-			if temp[0] == "Fijo":	   
-	   			fijos[temp[1]][temp[2*i]] = int(temp[2*i+1])
+            if temp[0] == "Fijo":      
+                fijos[temp[1]][temp[2*i]] = int(temp[2*i+1])
 
-	   		if temp[2*i] not in cursos:
-				cursos.append(temp[2*i])
-	     
-	datos.close()
+            if temp[2*i] not in cursos:
+                cursos.append(temp[2*i])
+         
+    datos.close()
 
-	return carga, cursos, fijos
+    return carga, cursos, fijos
 
 #Leer la disponibilidad horaria de los profesores.
 
@@ -77,72 +77,74 @@ carga, cursos, fijos = leer_carga_y_cursos()
 carga_inicial = deepcopy(carga)
 
 def leer_disponibilidad_bool():
-        profesor = {}
-        for line in open("disponible.dat", "r"):
-                temp = []
-                for a in line.split():	temp.append(a)
-              	if temp[1] not in profesor:	
-			profesor[temp[1]] = {}
-		for dia in semana:	
-			profesor[temp[1]][dia] = deepcopy(blocktrue)
+    profesor = {}
+    for line in open("disponible.dat", "r"):
+        temp = []
+        for a in line.split():
+            temp.append(a)
+        if temp[1] not in profesor:
+            profesor[temp[1]] = {}
+        for dia in semana:
+            profesor[temp[1]][dia] = deepcopy(blocktrue)
 
-        for line in open("disponible.dat", "r"):
+    for line in open("disponible.dat", "r"):
+        temp = []
+        for a in line.split():
+            temp.append(a)
+        for i in range(1, len(temp)/2):
+            dia = temp[2*i]
+            bloque = temp[2*i+1]
+            profe = temp[1]
+            if bloque == "todo":
+                profesor[profe][dia] = deepcopy(blockfalse)
+            else:
+                profesor[profe][dia][int(bloque)-1] = False
 
-                temp = []
-                for a in line.split():	temp.append(a)
-                for i in range(1,len(temp)/2):
-			dia = temp[2*i]
-			bloque = temp[2*i+1]
-			profe = temp[1]
-			if bloque == "todo":
-				profesor[profe][dia] = deepcopy(blockfalse)
-			else:
-				profesor[profe][dia][int(bloque)-1] = False
+    for prof in carga:
+        if prof not in profesor:
+            profesor[prof] = {}
+            for dia in semana:
+                profesor[prof][dia] = deepcopy(blocktrue)
 
-	for prof in carga:
-		if prof not in profesor:
-			profesor[prof] = {}
-			for dia in semana:
-				profesor[prof][dia] = deepcopy(blocktrue)		
-
-        return profesor
+    return profesor
 
 
 
 def profesores_de_curso():
-	prof_de_curso = {}
-	for curso in cursos:
-		   	for profe in carga:
-        			if curso in carga[profe]:
-		 			if curso not in prof_de_curso:
-		 				prof_de_curso[curso] = []
-					prof_de_curso[curso].append(profe)	
-	return prof_de_curso
+    prof_de_curso = {}
+    for curso in cursos:
+        for profe in carga:
+            if curso in carga[profe]:
+                if curso not in prof_de_curso:
+                    prof_de_curso[curso] = []
+                prof_de_curso[curso].append(profe)
+    return prof_de_curso
 
 
 profdecurso = profesores_de_curso()
 
-def horas_disp():
-	horas_disp = {}
-        for profe in disponible:
-                if profe not in fijos:
-                        cont = 0
-                        for dia in disponible[profe]:
-                                for j in range(8):
-                                        if disponible[profe][dia][j]:
-                                                cont += 1
-                                        else:
-                                                pass
 
-                        horas_disp[profe] = cont
-                else:
+def horas_disp():
+    horas_disp = {}
+    for profe in disponible:
+        if profe not in fijos:
+            cont = 0
+            for dia in disponible[profe]:
+                for j in range(8):
+                    if disponible[profe][dia][j]:
+                        cont += 1
+                    else:
                         pass
 
-        for profe in carga:
-                if profe not in horas_disp and profe not in fijos:
-                        horas_disp[profe] = 40
-	
-	return horas_disp
+            horas_disp[profe] = cont
+        else:
+            pass
+
+    for profe in carga:
+        if profe not in horas_disp and profe not in fijos:
+            horas_disp[profe] = 40
+
+    return horas_disp
 
 
 disponible = leer_disponibilidad_bool()
@@ -209,11 +211,11 @@ def cambio(horarios, n):
                 hora1, hora2 = randint(0,7), randint(0,7)
                 profe1 = horarios[curso][dia1][hora1]
                 profe2 = horarios[curso][dia2][hora2]
-		if profe1 != "0" and profe2 != "0":
-                	if disponible[profe1][dia2][hora2] and disponible[profe2][dia1][hora1] and profe1 not in prof_dh(carga[profe1], dia2, hora2, horarios) and profe2 not in prof_dh(carga[profe2], dia1, hora1, horarios):
-                        	horarios[curso][dia1][hora1] = profe2
-                        	horarios[curso][dia2][hora2] = profe1
-                        	desorden += 1
+        if profe1 != "0" and profe2 != "0":
+                    if disponible[profe1][dia2][hora2] and disponible[profe2][dia1][hora1] and profe1 not in prof_dh(carga[profe1], dia2, hora2, horarios) and profe2 not in prof_dh(carga[profe2], dia1, hora1, horarios):
+                            horarios[curso][dia1][hora1] = profe2
+                            horarios[curso][dia2][hora2] = profe1
+                            desorden += 1
 
 def cambio_2(horarios, n):
         desorden = 0
@@ -338,15 +340,15 @@ def prueba_de_consistencia(carga, horarios, nbloques):
 
 
 def asignar_fijos(fijos, carga, horarios):
-	for fijo in fijos:
-		for curso in horarios:
-			for dia in semana:
-				for hora in range(nbloques):
-					if fijo in profdecurso[curso] and disponible[fijo][dia][hora] and carga[fijo][curso] > 0 and horarios[curso][dia][hora]=="0":
-						horarios[curso][dia][hora] = fijo
-						carga[fijo][curso] -= 1
-					else:
-						pass
+    for fijo in fijos:
+        for curso in horarios:
+            for dia in semana:
+                for hora in range(nbloques):
+                    if fijo in profdecurso[curso] and disponible[fijo][dia][hora] and carga[fijo][curso] > 0 and horarios[curso][dia][hora]=="0":
+                        horarios[curso][dia][hora] = fijo
+                        carga[fijo][curso] -= 1
+                    else:
+                        pass
 
 def minimizar(horarios, energia, minimo):
         while energia(horarios)> minimo:
